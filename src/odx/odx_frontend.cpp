@@ -4,22 +4,22 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <dirent.h> 
+#include <dirent.h>
 
 #include "minimal.h"
 
 #include "odx_frontend_list.h"
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 480
-#define BMP_SIZE ((SCREEN_WIDTH*SCREEN_HEIGHT)+(256*4)+54)
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
+#define BMP_SIZE      77946//((SCREEN_WIDTH*SCREEN_HEIGHT)+(256*4)+54)
 
-#define Y_BOTTOM_LINE	460
-#define X_BUILD		(SCREEN_WIDTH - ((16 * 6)+2))
+#define Y_BOTTOM_LINE	230
+#define X_BUILD		    (SCREEN_WIDTH - ((16 * 6)+2))
 
 #define COMPATCORES 1
 
-char frontend_build_version[] = "RS-97 V1.2 (105)";
+char frontend_build_version[] = "MAME4ALL 0.37b5";
 
 static unsigned char splash_bmp[BMP_SIZE];
 static unsigned char menu_bmp[BMP_SIZE];
@@ -31,7 +31,7 @@ char playgame[16] = "builtinn\0";
 
 char mamedir[512];
 
-int odx_freq=336;       /* default dingoo Mhz */ 
+int odx_freq=336;       /* default dingoo Mhz */
 int odx_video_depth=16; /* MAME video depth */
 int odx_video_aspect=2; /* Scale best*/
 int odx_video_sync=0;   /* No vsync */
@@ -49,357 +49,463 @@ bool want_exit = false, first_run = true;
 
 char romdir[512];
 
-static void blit_bmp_8bpp(unsigned char *out, unsigned char *in) 
+static void blit_bmp_8bpp(unsigned char *out, unsigned char *in)
 {
 //	SDL_FillRect( layer, NULL, 0 );
-	SDL_RWops *rw = SDL_RWFromMem(in, BMP_SIZE);
-	SDL_Surface *temp = SDL_LoadBMP_RW(rw, 1);
-	SDL_Surface *image;
-	image = SDL_DisplayFormat(temp);
-	SDL_FreeSurface(temp);
-	
-	// Display image
- 	//SDL_BlitSurface(image, 0, layer, 0);
-	SDL_BlitSurface(image, 0, video, 0);
-	SDL_FreeSurface(image);
+  SDL_RWops *rw = SDL_RWFromMem(in, BMP_SIZE);
+  SDL_Surface *temp = SDL_LoadBMP_RW(rw, 1);
+  SDL_Surface *image;
+  image = SDL_DisplayFormat(temp);
+  SDL_FreeSurface(temp);
+
+  // Display image
+  //SDL_BlitSurface(image, 0, layer, 0);
+  SDL_BlitSurface(image, 0, video, 0);
+  SDL_FreeSurface(image);
 }
 
-static void odx_intro_screen(void) {
-	char name[256];
-	FILE *f;
-	sprintf(name,"skins/splash.bmp");
-	f=fopen(name,"rb");
-	if (f) {
-		fread(splash_bmp,1,BMP_SIZE,f);
-		fclose(f);
-	}
-	blit_bmp_8bpp(od_screen8,splash_bmp);
+static void odx_intro_screen(void)
+{
+  char name[256];
+  FILE *f;
+  sprintf(name,"skins/splash.bmp");
+  f=fopen(name,"rb");
+  if (f)
+  {
+    fread(splash_bmp,1,BMP_SIZE,f);
+    fclose(f);
+  }
+  blit_bmp_8bpp(od_screen8,splash_bmp);
 
-	odx_gamelist_text_out(1,ODX_SCREEN_HEIGHT - 16, frontend_build_version);
-	odx_gamelist_text_out(ODX_SCREEN_WIDTH - (10 * 8),ODX_SCREEN_HEIGHT - 16, "bob_fossil");
+  odx_gamelist_text_out(10, ODX_SCREEN_HEIGHT - 16, frontend_build_version);
+  odx_gamelist_text_out(ODX_SCREEN_WIDTH - (10 * 8),ODX_SCREEN_HEIGHT - 16, "bob_fossil");
 
-	odx_video_flip();
-	odx_joystick_press();
-	
-	sprintf(name,"skins/menu.bmp");
-	f=fopen(name,"rb");
-	if (f) {
-		fread(menu_bmp,1,BMP_SIZE,f);
-		fclose(f);
-	}
+  odx_video_flip();
+  odx_joystick_press();
+
+  sprintf(name,"skins/menu.bmp");
+  f=fopen(name,"rb");
+  if (f)
+  {
+    fread(menu_bmp,1,BMP_SIZE,f);
+    fclose(f);
+  }
 }
 
 static void game_list_init_nocache(void)
 {
-	char text[512];
-	int i;
-	FILE *f;
-	
-	if (strlen(romdir))
-		strcpy(text,romdir);
-	else
-		sprintf(text,"%s/roms",mamedir);
-	
-	DIR *d=opendir(text);
-	char game[32];
-	if (d)
-	{
-		struct dirent *actual=readdir(d);
-		while(actual)
-		{
-			for (i=0;i<NUMGAMES;i++)
-			{
-				if (frontend_drivers[i].available==0)
-				{
-					sprintf(game,"%s.zip",frontend_drivers[i].name);
-					if (strcmp(actual->d_name,game)==0)
-					{
-						frontend_drivers[i].available=1;
-						game_num_avail++;
-						break;
-					}
-				}
-			}
-			actual=readdir(d);
-		}
-		closedir(d);
-	}
-	
-	if (game_num_avail)
-	{
-		sprintf(text,"%s/frontend/mame.lst",mamedir);
-		remove(text);
-		/* sync(); */
-		f=fopen(text,"w");
-		if (f)
-		{
-			for (i=0;i<NUMGAMES;i++)
-			{
-				fputc(frontend_drivers[i].available,f);
-			}
-			fclose(f);
-			/* sync(); */
-		}
-	}
+  char text[512];
+  int i;
+  FILE *f;
+
+  if (strlen(romdir))
+    strcpy(text,romdir);
+  else
+    sprintf(text,"%s/roms",mamedir);
+
+  DIR *d=opendir(text);
+  char game[32];
+  if (d)
+  {
+    struct dirent *actual=readdir(d);
+    while(actual)
+    {
+      for (i=0; i<NUMGAMES; i++)
+      {
+        if (frontend_drivers[i].available==0)
+        {
+          sprintf(game,"%s.zip",frontend_drivers[i].name);
+          if (strcmp(actual->d_name,game)==0)
+          {
+            frontend_drivers[i].available=1;
+            game_num_avail++;
+            break;
+          }
+        }
+      }
+      actual=readdir(d);
+    }
+    closedir(d);
+  }
+
+  if (game_num_avail)
+  {
+    sprintf(text,"%s/frontend/mame.lst",mamedir);
+    remove(text);
+    /* sync(); */
+    f=fopen(text,"w");
+    if (f)
+    {
+      for (i=0; i<NUMGAMES; i++)
+      {
+        fputc(frontend_drivers[i].available,f);
+      }
+      fclose(f);
+      /* sync(); */
+    }
+  }
 }
 
 static void game_list_init_cache(void)
 {
-	char text[512];
-	FILE *f;
-	int i;
-	sprintf(text,"%s/frontend/mame.lst",mamedir);
-	f=fopen(text,"r");
-	if (f)
-	{
-		for (i=0;i<NUMGAMES;i++)
-		{
-			frontend_drivers[i].available=fgetc(f);
-			if (frontend_drivers[i].available)
-				game_num_avail++;
-		}
-		fclose(f);
-	}
-	else
-		game_list_init_nocache();
+  char text[512];
+  FILE *f;
+  int i;
+  sprintf(text,"%s/frontend/mame.lst",mamedir);
+  f=fopen(text,"r");
+  if (f)
+  {
+    for (i=0; i<NUMGAMES; i++)
+    {
+      frontend_drivers[i].available=fgetc(f);
+      if (frontend_drivers[i].available)
+        game_num_avail++;
+    }
+    fclose(f);
+  }
+  else
+    game_list_init_nocache();
 }
 
 static void game_list_init(int argc)
 {
-	if (argc==1)
-		game_list_init_nocache();
-	else
-		game_list_init_cache();
+  if (argc==1)
+    game_list_init_nocache();
+  else
+    game_list_init_cache();
 }
 
-static void game_list_view(int *pos) {
+static void game_list_view(int *pos)
+{
 
-	int i;
-	int view_pos;
-	int aux_pos=0;
-	int screen_y = 90;
-	int screen_x = 38;
+  int i;
+  int view_pos;
+  int aux_pos=0;
+  int screen_y = 50;
+  int screen_x = 25;
 
-	/* Draw background image */
-	blit_bmp_8bpp(od_screen8,menu_bmp);
+  // draw background image
+  blit_bmp_8bpp(od_screen8,menu_bmp);
 
-	/* draw text */
-	odx_gamelist_text_out( 4, 60,"Select ROM");
-	odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"A=Select Game/Start  B=Back");
-	odx_gamelist_text_out( 268, Y_BOTTOM_LINE,"L+R=Exit");
-	odx_gamelist_text_out( X_BUILD,2,frontend_build_version);
+  // draw text
+  odx_gamelist_text_out(10, Y_BOTTOM_LINE, "TA=Run  A=Back");
+  odx_gamelist_text_out(240, Y_BOTTOM_LINE, "R(Menu)=Exit");
+  odx_gamelist_text_out(X_BUILD, 10, frontend_build_version);
 
-	/* Check Limits */
-	if (*pos<0)
-		*pos=game_num_avail-1;
-	if (*pos>(game_num_avail-1))
-		*pos=0;
-					   
-	/* Set View Pos */
-	if (*pos<11) { // ALEK 10
-		view_pos=0;
-	} else {
-		if (*pos>game_num_avail-12) { // ALEK 11
-			view_pos=game_num_avail-22; // ALEK 21
-			view_pos=(view_pos<0?0:view_pos);
-		} else {
-			view_pos=*pos-11; // ALEK 10
-		}
-	}
+  // check limits
+  if(*pos < 0)
+  {
+    *pos = game_num_avail - 1;
+  }
+  if(*pos > (game_num_avail - 1))
+  {
+    *pos = 0;
+  }
 
-	/* Show List */
-	for (i=0;i<NUMGAMES;i++) {
-		if (frontend_drivers[i].available==1) {
-			if (aux_pos>=view_pos && aux_pos<=view_pos+21) { // ALEK 20
-				odx_gamelist_text_out( screen_x, screen_y, frontend_drivers[i].description);
-				if (aux_pos==*pos) {
-					odx_gamelist_text_out( screen_x-10, screen_y,">" );
-					odx_gamelist_text_out( screen_x-13, screen_y-1,"-" );
-				}
-				screen_y+=16;
-			}
-			aux_pos++;
-		}
-	}
+  // set view pos
+  if (*pos < 11)
+  {
+    view_pos = 0;
+  }
+  else
+  {
+    if (*pos > game_num_avail - 12)
+    {
+      view_pos = game_num_avail - 16; // 22
+      view_pos = (view_pos < 0 ? 0 : view_pos);
+    }
+    else
+    {
+      view_pos = *pos - 11;
+    }
+  }
+
+  // show list
+  for (i=0; i<NUMGAMES; i++)
+  {
+    if (frontend_drivers[i].available == 1)
+    {
+      if (aux_pos >= view_pos && aux_pos <= view_pos + /*22*/16)
+      {
+        int len = strlen(frontend_drivers[i].description);
+        char buf[45]= {0};
+
+        if(len > 40)
+        {
+          len = 40;
+        }
+        memcpy(buf, frontend_drivers[i].description, len);
+        if(len == 40)
+        {
+          strcat(buf, "...");
+        }
+        odx_gamelist_text_out( screen_x, screen_y, buf);
+        if (aux_pos == *pos)
+        {
+          odx_gamelist_text_out( screen_x-10, screen_y, ">" );
+          odx_gamelist_text_out( screen_x-13, screen_y-1, "-" );
+        }
+        screen_y+= 10;
+      }
+      aux_pos++;
+    }
+  }
 }
 
-static void game_list_select (int index, char *game, char *emu) {
-	int i;
-	int aux_pos=0;
-	for (i=0;i<NUMGAMES;i++)
-	{
-		if (frontend_drivers[i].available==1)
-		{
-			if(aux_pos==index)
-			{
-				strcpy(game,frontend_drivers[i].name);
-				strcpy(emu,frontend_drivers[i].exe);
-				break;
-			}
-			aux_pos++;
-		}
-	}
+static void game_list_select (int index, char *game, char *emu)
+{
+  int i;
+  int aux_pos=0;
+  for (i=0; i<NUMGAMES; i++)
+  {
+    if (frontend_drivers[i].available==1)
+    {
+      if(aux_pos==index)
+      {
+        strcpy(game,frontend_drivers[i].name);
+        strcpy(emu,frontend_drivers[i].exe);
+        break;
+      }
+      aux_pos++;
+    }
+  }
 }
 
 static char *game_list_description (int index)
 {
-	int i;
-	int aux_pos=0;
-	for (i=0;i<NUMGAMES;i++) {
-		if (frontend_drivers[i].available==1) {
-			if(aux_pos==index) {
-				return(frontend_drivers[i].description);
-			}
-			aux_pos++;
-		   }
-	}
-	return ((char *)0);
+  int i;
+  int aux_pos=0;
+  for (i=0; i<NUMGAMES; i++)
+  {
+    if (frontend_drivers[i].available==1)
+    {
+      if(aux_pos==index)
+      {
+        return(frontend_drivers[i].description);
+      }
+      aux_pos++;
+    }
+  }
+  return ((char *)0);
 }
 
 static int show_options(char *game)
 {
-	unsigned long ExKey=0;
-	int selected_option=0;
-	int x_Pos = 41;
-	int y_PosTop = 116;
-	int y_Pos = y_PosTop;
-	int options_count = 9;
-	char text[512];
-	FILE *f;
-	int i=0;
+  unsigned long ExKey=0;
+  int selected_option=0;
+  int x_Pos = 41;
+  int y_PosTop = 90;
+  int y_Pos = y_PosTop;
+  int options_count = 9;
+  char text[512]={0};
+  FILE *f;
+  int i=0;
 
-	/* Read game configuration */
-	sprintf(text,"%s/frontend/%s.cfg",mamedir,game);
-	f=fopen(text,"r");
-	if (f) {
-		fscanf(f,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",&odx_freq,&odx_video_depth,&odx_video_aspect,&odx_video_sync,
-		&odx_frameskip,&odx_sound,&odx_clock_cpu,&odx_clock_sound,&odx_cpu_cores,&odx_ramtweaks,&i,&odx_cheat,&odx_gsensor);
-		fclose(f);
-	}
-	
-	while(1)
-	{
-		y_Pos = y_PosTop;
-	
-		/* Draw background image */
-		blit_bmp_8bpp(od_screen8,menu_bmp);
+  // read game configuration
+  sprintf(text, "%s/frontend/%s.cfg", mamedir, game);
+  f = fopen(text,"r");
+  if (f)
+  {
+    fscanf(f,"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d", &odx_freq, &odx_video_depth, &odx_video_aspect, &odx_video_sync,
+           &odx_frameskip, &odx_sound, &odx_clock_cpu, &odx_clock_sound, &odx_cpu_cores, &odx_ramtweaks, &i, &odx_cheat, &odx_gsensor);
+    fclose(f);
+  }
 
-		/* draw text */
-		odx_gamelist_text_out( 4, 60,"Game Options");
-		odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"A=Select Game/Start  B=Back");
-		odx_gamelist_text_out( 268, Y_BOTTOM_LINE,"L+R=Exit");
-		odx_gamelist_text_out( X_BUILD,2,frontend_build_version);
+  while(1)
+  {
+    y_Pos = y_PosTop;
 
-		/* Draw the options */
-		strncpy (text,game_list_description(last_game_selected),33);
-		text[32]='\0';
-		odx_gamelist_text_out(x_Pos,y_Pos-20,text);
+    // draw background image
+    blit_bmp_8bpp(od_screen8, menu_bmp);
 
-		/* (0) Video Depth */
-		y_Pos += 20;
-		switch (odx_video_depth)
-		{
-			case -1: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Depth    Auto"); break;
-			case 8:  odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Depth    8 bit"); break;
-			case 16: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Depth    16 bit"); break;
-		}
-		
-		/* (1) Video Aspect */
-		y_Pos += 20;
-		switch (odx_video_aspect)
-		{
-			case 0: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Normal"); break;
-			case 1: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Scale Aspect"); break;
-			case 2: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Scale Aspect Fast"); break;
-			case 3: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Scale Fast"); break;
-			case 4: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Full Screen"); break;
-			case 5: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Rotate Normal"); break;
-			case 6: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Rotate Scale Horiz"); break;
-			case 7: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Rotate Best"); break;
-			case 8: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Rotate Fast"); break;
-			case 9: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Double Scanlines"); break;
-			case 10: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect   Double Vertical"); break;
-		}
-		
-		/* (2) Video Sync */
-		y_Pos += 20;
-		switch (odx_video_sync)
-		{
-			case 1: odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync     VSync"); break;
-			case 0: odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync     Normal"); break;
-			case 2: odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync     DblBuf"); break;
-			case -1: odx_gamelist_text_out(x_Pos,y_Pos,"Video Sync     OFF"); break;
-		}
-		
-		/* (3) Frame-Skip */
-		y_Pos += 20;
-		if ((odx_video_sync==-1) && (odx_frameskip==-1)) odx_frameskip=0;
-		if(odx_frameskip==-1) {
-			odx_gamelist_text_out_fmt(x_Pos,y_Pos, "Frame-Skip     Auto");
-		}
-		else{
-			odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Frame-Skip     %d",odx_frameskip);
-		}
+    // draw text
+    odx_gamelist_text_out(10, Y_BOTTOM_LINE, "TA=Run  A=Back");
+    odx_gamelist_text_out(X_BUILD, 10, frontend_build_version);
 
-		/* (4) Sound */
-		y_Pos += 20;
-		switch(odx_sound)
-		{
-			case 0: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","OFF"); break;
-			case 1: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (15 KHz fast)"); break;
-			case 2: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (22 KHz fast)"); break;
-			case 3: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (33 KHz fast)"); break;
-			case 4: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (44 KHz fast)"); break;
-			case 5: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (11 KHz fast)"); break;
-			case 6: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (15 KHz)"); break;
-			case 7: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (22 KHz)"); break;
-			case 8: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (33 KHz)"); break;
-			case 9: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (44 KHz)"); break;
-			case 10: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (11 KHz)"); break;
-			case 11: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (15 KHz stereo)"); break;
-			case 12: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (22 KHz stereo)"); break;
-			case 13: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (33 KHz stereo)"); break;
-			case 14: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (44 KHz stereo)"); break;
-			case 15: odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound          %s","ON (11 KHz stereo)"); break;
-		}
+    // draw the options
+    strcpy(text, game_list_description(last_game_selected));
+    if(strlen(game_list_description(last_game_selected)) > 40){
+      text[40] = '\0';
+      strcat(text, "...");
+    }
+    odx_gamelist_text_out(25, 70, text);
 
-		/* (5) CPU Clock */
-		y_Pos += 20;
-		odx_gamelist_text_out_fmt(x_Pos,y_Pos,"CPU Clock      %d%%",odx_clock_cpu);
+    // (0) video depth
+    y_Pos += 10;
+    switch (odx_video_depth)
+    {
+      case -1:
+        odx_gamelist_text_out_fmt(x_Pos, y_Pos, "Video Depth      Auto");
+        break;
+      case 8:
+        odx_gamelist_text_out_fmt(x_Pos, y_Pos, "Video Depth      8 bit");
+        break;
+      case 16:
+        odx_gamelist_text_out_fmt(x_Pos, y_Pos, "Video Depth      16 bit");
+        break;
+    }
 
-		/* (6) Audio Clock */
-		y_Pos += 20;
-		odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Audio Clock    %d%%",odx_clock_sound);
+    // (1) video aspect
+    y_Pos += 10;
+    switch (odx_video_aspect)
+    {
+      case 0:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Normal");
+        break;
+      case 1:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Scale Aspect");
+        break;
+      case 2:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Scale Aspect Fast");
+        break;
+      case 3:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Scale Fast");
+        break;
+      case 4:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Full Screen");
+        break;
+      case 5:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Rotate Normal");
+        break;
+      case 6:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Rotate Scale Horiz");
+        break;
+      case 7:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Rotate Best");
+        break;
+      case 8:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Rotate Fast");
+        break;
+      case 9:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Double Scanlines");
+        break;
+      case 10:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Video Aspect     Double Vertical");
+        break;
+    }
 
-		if(strcmp(playemu, "neomame"))
-			{
-			/* (7) CPU cores */
-			y_Pos += 20;
-			switch (odx_cpu_cores)
-				{
+    // (2) video Sync
+    y_Pos += 10;
+    switch (odx_video_sync)
+    {
+      case 1:
+        odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync       VSync");
+        break;
+      case 0:
+        odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync       Normal");
+        break;
+      case 2:
+        odx_gamelist_text_out(x_Pos,y_Pos, "Video Sync       DblBuf");
+        break;
+      case -1:
+        odx_gamelist_text_out(x_Pos,y_Pos,"Video Sync       OFF");
+        break;
+    }
+
+    // (3) frameskip
+    y_Pos += 10;
+    if ((odx_video_sync==-1) && (odx_frameskip==-1)) odx_frameskip=0;
+    if(odx_frameskip==-1)
+    {
+      odx_gamelist_text_out_fmt(x_Pos,y_Pos, "Frame-Skip       Auto");
+    }
+    else
+    {
+      odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Frame-Skip       %d", odx_frameskip);
+    }
+
+    // (4) sound
+    y_Pos += 10;
+    switch(odx_sound)
+    {
+      case 0:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "OFF");
+        break;
+      case 1:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (15 KHz fast)");
+        break;
+      case 2:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (22 KHz fast)");
+        break;
+      case 3:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (33 KHz fast)");
+        break;
+      case 4:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (44 KHz fast)");
+        break;
+      case 5:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (11 KHz fast)");
+        break;
+      case 6:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (15 KHz)");
+        break;
+      case 7:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (22 KHz)");
+        break;
+      case 8:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (33 KHz)");
+        break;
+      case 9:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (44 KHz)");
+        break;
+      case 10:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (11 KHz)");
+        break;
+      case 11:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (15 KHz stereo)");
+        break;
+      case 12:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (22 KHz stereo)");
+        break;
+      case 13:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (33 KHz stereo)");
+        break;
+      case 14:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (44 KHz stereo)");
+        break;
+      case 15:
+        odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Sound            %s", "ON (11 KHz stereo)");
+        break;
+    }
+
+    // (5) cpu clock
+    y_Pos += 10;
+    odx_gamelist_text_out_fmt(x_Pos,y_Pos,"CPU Clock        %d%%", odx_clock_cpu);
+
+    // (6) audio clock
+    y_Pos += 10;
+    odx_gamelist_text_out_fmt(x_Pos,y_Pos,"Audio Clock      %d%%", odx_clock_sound);
+
+    if(strcmp(playemu, "neomame"))
+    {
+        // (7) cpu cores
+			y_Pos += 10;
+
+        switch (odx_cpu_cores)
+        {
 				case 0: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores None"); break;
 				case 1: odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores Fame"); break;
 				default:odx_gamelist_text_out(x_Pos,y_Pos, "CPU FAST cores None"); odx_cpu_cores = 0; break;
-				}
-			}
+        }
+      }
 		else
 			odx_cpu_cores = 0;
 
 
 		/* (8) Cheats */
-		y_Pos += 20;
+		y_Pos += 10;
 		if (odx_cheat)
-			odx_gamelist_text_out(x_Pos,y_Pos,"Cheats         ON");
+      odx_gamelist_text_out(x_Pos,y_Pos,"Cheats           ON");
 		else
-			odx_gamelist_text_out(x_Pos,y_Pos,"Cheats         OFF");
+      odx_gamelist_text_out(x_Pos,y_Pos,"Cheats           OFF");
 
-		//y_Pos += 30;
-		//odx_gamelist_text_out(x_Pos,y_Pos,"Press B to confirm, X to return\0");
+    //y_Pos += 30;
+    //odx_gamelist_text_out(x_Pos,y_Pos,"Press B to confirm, X to return\0");
 
-		/* Show currently selected item */
-		odx_gamelist_text_out(x_Pos-16,y_PosTop+(selected_option*20)+20," >");
+    // Show currently selected item
+    odx_gamelist_text_out(x_Pos-16, y_PosTop + (selected_option * 10) + 10, " >");
 
-		odx_video_flip();
+    odx_video_flip();
 		while (odx_joystick_read()) { odx_timer_delay(100); }
 		while(!(ExKey=odx_joystick_read())) { }
 		if(ExKey & OD_DOWN){
@@ -856,7 +962,7 @@ void execute_game (char *playemu, char *playgame)
 //	execv(mame_args[0], args);
 }
  
-#define FILE_LIST_ROWS 19
+#define FILE_LIST_ROWS 15
 #define MAX_FILES 512
 typedef struct  {
 	char name[255];
@@ -941,28 +1047,28 @@ signed int get_romdir(char *result) {
 		char print_buffer[81];
 
 		while(repeat && !want_exit) {
-			blit_bmp_8bpp(od_screen8,menu_bmp);
-			
-			odx_gamelist_text_out( 182, 60,"Select a ROM directory");
-			odx_gamelist_text_out( 4, 430,current_dir_short );
-			odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"A=Enter dir START=Select dir");
-			odx_gamelist_text_out( 280, Y_BOTTOM_LINE,"B=Quit");
-			odx_gamelist_text_out( X_BUILD,2,frontend_build_version);
-			
-			for(i = 0, current_filedir_number = i + current_filedir_scroll_value; i < FILE_LIST_ROWS; i++, current_filedir_number++) {
-#define CHARLEN ((320/6)-2)
-				if(current_filedir_number < num_filedir) {
-					strncpy(print_buffer+1,filedir_list[current_filedir_number].name, CHARLEN-1);
-					print_buffer[0] = ' ';
-					if((current_filedir_number == current_filedir_selection))
-						print_buffer[0] = '>';
-					print_buffer[CHARLEN] = 0;
-					odx_gamelist_text_out(4, 62+((i + 2) * 16), print_buffer );
-				}
-			}
-			odx_video_flip();
+      blit_bmp_8bpp(od_screen8,menu_bmp);
 
-			// Catch input
+      odx_gamelist_text_out( 4, 50,"Select a ROM directory");
+      odx_gamelist_text_out( 4, 430,current_dir_short );
+      odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"TA=Enter dir  START=Select dir");
+      odx_gamelist_text_out( 240, Y_BOTTOM_LINE,"R(Menu)=Quit");
+      odx_gamelist_text_out( X_BUILD, 10, frontend_build_version);
+
+    for(i = 0, current_filedir_number = i + current_filedir_scroll_value; i < FILE_LIST_ROWS; i++, current_filedir_number++) {
+        #define CHARLEN ((320/6)-2)
+				if(current_filedir_number < num_filedir) {
+          strncpy(print_buffer+1,filedir_list[current_filedir_number].name, CHARLEN-1);
+          print_buffer[0] = ' ';
+          if((current_filedir_number == current_filedir_selection))
+            print_buffer[0] = '>';
+          print_buffer[CHARLEN] = 0;
+          odx_gamelist_text_out(20, 45 + ((i + 2) * 10), print_buffer );
+        }
+      }
+      odx_video_flip();
+
+      // Catch input
 			while ( (odx_joystick_read())) odx_timer_delay(100);
 			while(!(ExKey=odx_joystick_read())) { 
 			}
@@ -1083,8 +1189,8 @@ int do_frontend ()
 		/* Open dingux Initialization */
 		//odx_init(1000,16,44100,16,0,60);
 
-		/* Show intro screen */
-		odx_intro_screen();
+    /* Show intro screen */
+    odx_intro_screen();
 
 		/* Read default configuration */
 		odx_load_config();
@@ -1122,10 +1228,10 @@ int do_frontend ()
 		first_run = false;
 		}
 
-	if(!want_exit)
-		{
-		/* Select Game */
-		select_game(playemu,playgame);
+  if(!want_exit)
+  {
+    /* Select Game */
+    select_game(playemu,playgame);
 
 		/* Write default configuration */
 		odx_save_config();
