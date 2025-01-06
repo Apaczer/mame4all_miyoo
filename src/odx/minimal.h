@@ -22,8 +22,8 @@
 
 #include <SDL/SDL.h>
 
-#define ODX_SCREEN_WIDTH 320
-#define ODX_SCREEN_HEIGHT 480
+#define ODX_SCREEN_WIDTH  320
+#define ODX_SCREEN_HEIGHT 240
 
 #define odx_video_color8(C,R,G,B)  (odx_palette_rgb[C] = ((((R)&0xF8)<<8)|(((G)&0xFC)<<3)|(((B)&0xF8)>>3)))
 #define odx_video_color16(R,G,B,A) ((((R)&0xF8)<<8)|(((G)&0xFC)<<3)|(((B)&0xF8)>>3))
@@ -31,16 +31,32 @@
 #define odx_video_getg16(C) (((C)>>3)&0xFC)
 #define odx_video_getb16(C) (((C)<<3)&0xF8)
 
-enum  { OD_UP=1<<0,         OD_LEFT=1<<1,       OD_DOWN=1<<2,  OD_RIGHT=1<<3,
-        OD_START=1<<4,  OD_SELECT=1<<5,    OD_L=1<<6,    OD_R=1<<7,
-        OD_A=1<<8,       OD_B=1<<9,        OD_X=1<<10,    OD_Y=1<<11 ,
-
-	/* Virtual keys * SELECT + 'button' */
-        OD_SEL_START=1<<12,  OD_SEL_SELECT=1<<13,    OD_SEL_L=1<<14,    OD_SEL_R=1<<15,
-        OD_SEL_A=1<<16,       OD_SEL_B=1<<17,        OD_SEL_X=1<<18,    OD_SEL_Y=1<<19
+enum
+{
+  OD_UP = 1 << 0,
+  OD_LEFT = 1 << 1,
+  OD_DOWN = 1 << 2,
+  OD_RIGHT = 1 << 3,
+  OD_START = 1 << 4,
+  OD_SELECT = 1 << 5,
+  OD_L = 1 << 6,
+  OD_R = 1 << 7,
+  OD_A = 1 << 8,
+  OD_B = 1 << 9,
+  OD_X = 1 << 10,
+  OD_Y = 1 << 11,
+  OD_SEL_START = 1 << 12,
+  OD_SEL_SELECT = 1 << 13,
+  OD_SEL_L = 1 << 14,
+  OD_SEL_R = 1 << 15,
+  OD_SEL_A = 1 << 16,
+  OD_SEL_B = 1 << 17,
+  OD_SEL_X = 1 << 18,
+  OD_SEL_Y = 1 << 19,
+  OD_MENU = 1 << 20
 };
 
-#define OD_KEY_MAX 16
+#define OD_KEY_MAX 21
 
 //extern SDL_Surface 				*layer,*video;
 extern SDL_Surface 				*video;
@@ -58,12 +74,11 @@ extern int						odx_sound_stereo;
 extern int						rotate_controls;
 
 #ifdef _GCW0_
-extern SDL_Joystick				*odx_joyanalog;
+  extern SDL_Joystick				*odx_joyanalog;
 #endif
 
 extern void odx_video_flip(void);
 extern void odx_video_flip_single(void);
-extern void odx_video_flip_double(void);
 extern void odx_video_wait_vsync(void);
 extern void odx_video_setpalette(void);
 
@@ -96,10 +111,10 @@ extern int abs_x, abs_y, abs_z;
 #define odx_video_wait_vsync()  { }
 #define odx_video_setpalette()  { }
 
-#define USE_DMA
+//#define USE_DMA
 
 #ifdef USE_DMA
-extern volatile uint16_t *dma_ptr;
+  extern volatile uint16_t *dma_ptr;
 #endif
 
 #endif
