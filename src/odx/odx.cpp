@@ -110,6 +110,17 @@ int main (int argc, char **argv)
 
 	for (i = 1;i < argc;i++) /* V.V_121997 */
 	{
+		if (strcasecmp(argv[i],"-h") == 0 || strcasecmp(argv[i],"-help") == 0) {
+			fputs("Usage:  mame4all [options] gamename \n\n"
+				"        mame4all -help (print this HELP message)\n"
+				"        mame4all -log  (output stderr to txt file)\n"
+				"        mame4all -nofrontend [ROMset] (start game without frontend)\n"
+				"        mame4all -nosettings  (don't show settings before game launch)\n"
+				"        mame4all -romsdir=[PATH]  (specify ROMSETs path)\n"
+				"        e.g.: mame4all -nofrontend -nosettings -romsdir=/home/MAME goldnaxe\n\n", stdout);
+			odx_deinit();
+			exit(0);
+		}
 		if (strcasecmp(argv[i],"-log") == 0)
 			errorlog = fopen("error.log","wa");
 		if (strncmp(argv[i], "-romsdir=", 9) == 0) {
