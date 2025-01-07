@@ -1,18 +1,28 @@
-# mame4all RS-97
+# mame4all (MiyooCFW)
 
-Port of mame4all for the RS-97 handheld running Open Dingux.
+Port of MAME 0.37b5 for the MiyooCFW (with ODx frontend)
 
-Based on mame4all GCW0 by Alekmaul.
+### Native build (linux):
 
-https://github.com/alekmaul/mame4all
+```
+make DEBUG=1
+```
 
-See Readme.txt for compilation instructions.
+### Cross-Compile build (MiyooCFW):
 
-You'll need the RS-97 toolchain to build from source. You can create this by following the steps outlined at:
+- compile binary (e.g. via docker):
+```
+make
+```
 
-https://github.com/steward-fu/gh_retrogame_buildroot
+- or generate IPK package:
+```
+gm2xpkg
+```
 
-Thanks to:
+### Credits
 
-- steward-fu for the RS-97 toolchain.
-- Alekmaul for the original GCW0 port of mame4all.
+- Steward-fu (initial Miyoo port)
+- miwasp (extra QOLI changes)
+
+Code based on mame4all for GCW0 by Alekmaul & RS-97 port by bob_fossil.
