@@ -714,7 +714,7 @@ void odx_save_config(void)
   }
 }
 
-static void select_game(char *emu, char *game, bool nofrontend, char *param_game)
+static void select_game(char *emu, char *game, bool nofrontend, bool nosettings, char *param_game)
 {
   unsigned long ExKey;
 
@@ -730,10 +730,10 @@ static void select_game(char *emu, char *game, bool nofrontend, char *param_game
     if (nofrontend == true)
     {
       strcpy(game, param_game);
-      if(show_options(game, nofrontend))
-      {
+      if (nosettings)
         break;
-      }
+      if(show_options(game, nofrontend))
+        break;
     }
     else
     {
@@ -764,6 +764,8 @@ static void select_game(char *emu, char *game, bool nofrontend, char *param_game
         game_list_select(last_game_selected, game, emu);
 
         /* Emulation Options */
+        if (nosettings)
+          break;
         if(show_options(game,nofrontend))
         {
           break;
@@ -1328,7 +1330,7 @@ void gethomedir(char *dir, char* name)
   }
 }
 
-int do_frontend (bool nofrontend, char *param_game)
+int do_frontend (bool nofrontend, bool nosettings, char *param_game, char *param_romsdir)
 {
   char curDir[512];
 
@@ -1343,11 +1345,11 @@ int do_frontend (bool nofrontend, char *param_game)
     odx_timer_delay(100);
   }
 
-  if(first_run)
+  if(first_run || strlen(param_romsdir))
   {
     /* get initial home directory */
     gethomedir(mamedir,"mame4all");
-    strcpy(romdir,"");
+    strcpy(romdir,param_romsdir);
 
     /* Open dingux Initialization */
     //odx_init(1000,16,44100,16,0,60);
@@ -1356,10 +1358,14 @@ int do_frontend (bool nofrontend, char *param_game)
     odx_intro_screen(nofrontend);
 
     /* Read default configuration */
-    odx_load_config();
+    if (!first_run)
+      odx_load_config();
 
     /* Initialize list of available games */
-    game_list_init(0);
+    if (strlen(romdir))
+      game_list_init(1);
+    else
+      game_list_init(0);
     if (game_num_avail==0)
     {
       /* save current dir */
@@ -1394,7 +1400,7 @@ int do_frontend (bool nofrontend, char *param_game)
   if(!want_exit)
   {
     /* Select Game */
-    select_game(playemu,playgame, nofrontend, param_game);
+    select_game(playemu, playgame, nofrontend, nosettings, param_game);
 
     /* Write default configuration */
     odx_save_config();

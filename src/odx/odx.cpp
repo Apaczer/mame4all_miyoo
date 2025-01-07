@@ -21,7 +21,7 @@ void msdos_init_input(void);
 void msdos_shutdown_sound(void);
 void msdos_shutdown_input(void);
 int  frontend_help (int argc, char **argv);
-int do_frontend (bool nofrontend, char *param_game);
+int  do_frontend (bool nofrontend, bool nosettings, char *param_game, char *param_romsdir);
 void parse_cmdline (int argc, char **argv, int game);
 void set_mame_args (int argc, char **argv);
 void init_inpdir(void);
@@ -93,7 +93,9 @@ int main (int argc, char **argv)
 	char *playbackname = NULL;
 	int use_fame=0;
 	bool nofrontend = false;
+	bool nosettings = false;
 	char param_game[16] = "\0";
+	char param_romsdir[256] = "";
 	extern int video_scale;
 	extern int video_border;
 	extern int video_aspect;
@@ -110,9 +112,16 @@ int main (int argc, char **argv)
 	{
 		if (strcasecmp(argv[i],"-log") == 0)
 			errorlog = fopen("error.log","wa");
+		if (strncmp(argv[i], "-romsdir=", 9) == 0) {
+			strcpy(param_romsdir,argv[i]);
+			strncpy(param_romsdir, argv[i] + 9, sizeof(param_romsdir) - 1);
+			param_romsdir[sizeof(param_romsdir) - 1] = '\0'; // Ensure null termination
+		}
 		if (strcasecmp(argv[i],"-nofrontend") == 0)
 			nofrontend = true;
-		if (argv[i][0] != '-')
+		if (strcasecmp(argv[i],"-nosettings") == 0)
+			nosettings = true;
+		if (argv[i][0] != '-') // Last argument is ROMset name
 			strcpy(param_game,argv[i]);
 	}
 
@@ -123,7 +132,7 @@ int main (int argc, char **argv)
 	bool in_frontend = true;
 	while(in_frontend)
 		{
-		if(!do_frontend(nofrontend, param_game))
+		if(!do_frontend(nofrontend, nosettings, param_game, param_romsdir))
 			{
 			printf("Frontend closing down.\n");
 			in_frontend = false;
