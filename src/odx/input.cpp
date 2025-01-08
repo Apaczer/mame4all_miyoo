@@ -155,7 +155,7 @@ static void updatekeyboard(void)
 	/* MAME Menu */
 	key[KEY_TAB]=(ExKey1 & OD_START) && (ExKey1 & OD_SELECT);
 	/* Enter */
-	key[KEY_ENTER]=(ExKey1 & OD_B);
+	key[KEY_ENTER]=(ExKey1 & OD_A);
 	/* Esc */
 	key[KEY_ESC]=((ExKey1 & OD_L) && (ExKey1 & OD_R) && (ExKey1 & OD_START) || (ExKey1 & OD_MENU));
 	/* Pause */
