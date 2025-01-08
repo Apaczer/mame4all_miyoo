@@ -4,8 +4,15 @@ Port of MAME 0.37b5 for the MiyooCFW (with ODx frontend)
 
 ### Native build (linux):
 
+- compile binary
 ```
-make DEBUG=1
+make DEBUG=1 distrib
+```
+
+- launch from CWD directory
+```
+cd distrib/mame4all
+./mame4all
 ```
 
 ### Cross-Compile build (MiyooCFW):
@@ -17,7 +24,7 @@ make
 
 - or generate IPK package:
 ```
-gm2xpkg
+make ipk
 ```
 
 ### Credits

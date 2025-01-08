@@ -10,13 +10,19 @@ endif
 CC      = $(CROSS)gcc
 CPP     = $(CROSS)gcc
 LD      = $(CROSS)gcc
+#STRIP   = $(CROSS)strip
+
+SYSROOT		?= $(shell $(CC) --print-sysroot)
+PKGS		:= sdl
+PKGS_CFLAGS	:= $(shell $(SYSROOT)/../../usr/bin/pkg-config --cflags $(PKGS))
+PKGS_LIBS	:= $(shell $(SYSROOT)/../../usr/bin/pkg-config --libs $(PKGS))
 
 MD      = @mkdir
 RM      = @rm -f
 CP      = @cp
 MV      = @mv
 DEVLIBS =
-EMULATOR= $(TARGET)
+EMULATOR= $(TARGET)4all
 DEFS    = -D__ODX__ -DLSB_FIRST -DALIGN_INTS -DALIGN_SHORTS -DINLINE="static inline" -Dasm="__asm__ __volatile__" \
           -DMAME_UNDERCLOCK -DMAME_FASTSOUND -DENABLE_AUTOFIRE -DBIGCASE
 
@@ -37,8 +43,9 @@ ifeq ($(DEBUG), 0)
 else
   CFLAGS  = -D_GCW0_ -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS) -fPIC
 endif
+  CFLAGS += $(PKGS_CFLAGS)
 
-LIBS    = -lSDL  -lpthread -lm -lgcc 
+LIBS    = $(PKGS_LIBS)
 ifeq ($(DEBUG), 0)
   LDFLAGS = $(CFLAGS) $(LIBS) -s
 else
@@ -63,13 +70,13 @@ include src/$(MAMEOS)/$(MAMEOS).mak
 CDEFS = $(DEFS) $(COREDEFS) $(CPUDEFS) $(SOUNDDEFS)
 
 $(EMULATOR): $(COREOBJS) $(OSOBJS) $(DRVOBJS)
-	$(LD) $(LDFLAGS) $(COREOBJS) $(OSOBJS) $(LIBS) $(DRVOBJS) -o $@
-	$(MV) $(EMULATOR) distrib/mame4all/mame4all.dge
+	$(LD) $(COREOBJS) $(OSOBJS) $(DRVOBJS) -o $@ $(LDFLAGS)
 
-$(EMULATOR).dge: $(FEOBJS)
-	@echo Linking $@ ...
-	$(LD) $(LDFLAGS) $(FEOBJS) $(LIBS) -o $@
-	$(MV) $(EMULATOR).dge distrib/mame4all/$(EMULATOR).dge
+distrib: $(EMULATOR)
+	$(MV) $(EMULATOR) distrib/mame4all/
+
+ipk: $(EMULATOR)
+	gm2xpkg -i -c -q -f miyoo-pkg.cfg
 
 $(OBJ)/%.o: src/%.c
 	@echo Compiling $<...
