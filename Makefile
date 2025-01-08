@@ -33,7 +33,7 @@ else
 endif
 
 ifeq ($(DEBUG), 0)
-  CFLAGS  = -D_GCW0_ -O3 -march=armv5te -mtune=arm926ej-s -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS)
+  CFLAGS  = -D_GCW0_ -DUSE_DMA -O3 -march=armv5te -mtune=arm926ej-s -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS)
 else
   CFLAGS  = -D_GCW0_ -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS) -fPIC
 endif
