@@ -136,6 +136,10 @@ int main (int argc, char **argv)
 			strcpy(param_game,argv[i]);
 	}
 
+	if (!nofrontend || !strlen(param_game)) {
+		nofrontend = false;
+		strcpy(param_game,"");
+	}
 
 	/* Initialization */
 	odx_init(1000,16,44100,16,0,60);
