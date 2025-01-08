@@ -80,7 +80,7 @@ static void odx_intro_screen(bool nofrontend)
     blit_bmp_8bpp(od_screen8,splash_bmp);
 
     odx_gamelist_text_out(10, ODX_SCREEN_HEIGHT - 16, frontend_build_version);
-    odx_gamelist_text_out(ODX_SCREEN_WIDTH - (10 * 8),ODX_SCREEN_HEIGHT - 16, "bob_fossil");
+    odx_gamelist_text_out(ODX_SCREEN_WIDTH - (10 * 8),ODX_SCREEN_HEIGHT - 16, "");
 
     odx_video_flip();
     odx_joystick_press();
