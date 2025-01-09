@@ -17,6 +17,8 @@ cd distrib/mame4all
 
 ### Cross-Compile build (MiyooCFW):
 
+It is recommended to use uClibc toolchain
+
 - compile binary (e.g. via docker):
 ```
 make
