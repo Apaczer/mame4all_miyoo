@@ -1345,11 +1345,11 @@ int do_frontend (bool nofrontend, bool nosettings, char *param_game, char *param
     odx_timer_delay(100);
   }
 
-  if(first_run || strlen(param_romsdir))
+  if(first_run)
   {
     /* get initial home directory */
     gethomedir(mamedir,"mame4all");
-    strcpy(romdir,param_romsdir);
+    strcpy(romdir,"");
 
     /* Open dingux Initialization */
     //odx_init(1000,16,44100,16,0,60);
@@ -1358,12 +1358,15 @@ int do_frontend (bool nofrontend, bool nosettings, char *param_game, char *param
     odx_intro_screen(nofrontend);
 
     /* Read default configuration */
-    if (!first_run)
-      odx_load_config();
+    odx_load_config();
 
     /* Initialize list of available games */
-    if (strlen(romdir))
+    if (strcmp(param_romsdir, "") != 0)
+    {
+      //fputs("romsdir ovewrite", stdout);
+      strcpy(romdir,param_romsdir);
       game_list_init(1);
+    }
     else
       game_list_init(0);
     if (game_num_avail==0)
