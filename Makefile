@@ -16,6 +16,8 @@ SYSROOT		?= $(shell $(CC) --print-sysroot)
 PKGS		:= sdl
 PKGS_CFLAGS	:= $(shell $(SYSROOT)/../../usr/bin/pkg-config --cflags $(PKGS))
 PKGS_LIBS	:= $(shell $(SYSROOT)/../../usr/bin/pkg-config --libs $(PKGS))
+SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
+SDL_LIBS  := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
 MD      = @mkdir
 RM      = @rm -f
@@ -40,15 +42,17 @@ endif
 
 ifeq ($(DEBUG), 0)
   CFLAGS  = -D_GCW0_ -DUSE_DMA -O3 -march=armv5te -mtune=arm926ej-s -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS)
+  CFLAGS += $(PKGS_CFLAGS)
 else
   CFLAGS  = -D_GCW0_ -Isrc -Isrc/$(MAMEOS) -Isrc/zlib $(W_OPTS) $(F_OPTS) -fPIC
+  CFLAGS += $(SDL_CFLAGS)
 endif
-  CFLAGS += $(PKGS_CFLAGS)
 
-LIBS    = $(PKGS_LIBS)
 ifeq ($(DEBUG), 0)
+  LIBS    = $(PKGS_LIBS)
   LDFLAGS = $(CFLAGS) $(LIBS) -s
 else
+  LIBS    = $(SDL_LIBS) -lm
   LDFLAGS = $(CFLAGS) $(LIBS)
 endif
 
