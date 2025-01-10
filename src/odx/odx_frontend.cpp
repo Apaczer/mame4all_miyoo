@@ -191,7 +191,7 @@ static void game_list_view(int *pos)
   blit_bmp_8bpp(od_screen8,menu_bmp);
 
   // draw text
-  odx_gamelist_text_out(10, Y_BOTTOM_LINE, "TA=Run  A=Back");
+  odx_gamelist_text_out(10, Y_BOTTOM_LINE, "A=Run  B=Back");
   odx_gamelist_text_out(240, Y_BOTTOM_LINE, "R(Menu)=Exit");
   odx_gamelist_text_out(X_BUILD, 10, frontend_build_version);
 
@@ -322,7 +322,7 @@ static int show_options(char *game, bool nofrontend)
     blit_bmp_8bpp(od_screen8, menu_bmp);
 
     // draw text
-    odx_gamelist_text_out(10, Y_BOTTOM_LINE, "TA=Run  A=Back");
+    odx_gamelist_text_out(10, Y_BOTTOM_LINE, "A=Run  B=Back");
     odx_gamelist_text_out(X_BUILD, 10, frontend_build_version);
 
     // draw the options
@@ -1175,7 +1175,7 @@ signed int get_romdir(char *result)
 
       odx_gamelist_text_out( 4, 50,"Select a ROM directory");
       odx_gamelist_text_out( 4, 430,current_dir_short );
-      odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"TA=Enter dir  START=Select dir");
+      odx_gamelist_text_out( 4, Y_BOTTOM_LINE,"A=Enter dir  START=Select dir");
       odx_gamelist_text_out( 240, Y_BOTTOM_LINE,"R(Menu)=Quit");
       odx_gamelist_text_out( X_BUILD, 10, frontend_build_version);
 
