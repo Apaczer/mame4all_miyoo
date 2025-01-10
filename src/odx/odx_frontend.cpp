@@ -33,10 +33,10 @@ char mamedir[512];
 
 int odx_freq=336;       /* default dingoo Mhz */
 int odx_video_depth=16; /* MAME video depth */
-int odx_video_aspect=2; /* Scale best*/
+int odx_video_aspect=2; /* Scale Aspect Fast*/
 int odx_video_sync=0;   /* No vsync */
 int odx_frameskip=-1;
-int odx_sound = 2;
+int odx_sound = 5;     /* 11 KHz fast */
 //int odx_volume = 3;
 int odx_clock_cpu=100;
 int odx_clock_sound=100;
