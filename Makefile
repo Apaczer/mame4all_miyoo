@@ -4,6 +4,9 @@ MAMEOS  = odx
 DEBUG   = 0
 VPATH   = src $(wildcard src/cpu/*)
 
+# Profile Guided Optimization : 0, YES, APPLY
+PROFILE ?= 0
+
 ifeq ($(DEBUG), 0)
   CROSS   = arm-linux-
 endif
@@ -36,6 +39,12 @@ ifeq ($(DEBUG), 0)
 	        -fstrict-aliasing -fexpensive-optimizations -fno-pic \
 	        -finline -finline-functions -fmerge-all-constants \
 	        -ftree-vectorize -fweb -frename-registers
+ifeq ($(PROFILE), YES)
+  F_OPTS += -fprofile-generate=/mnt/profile
+else ifeq ($(PROFILE), APPLY)
+  F_OPTS += -fprofile-use=profile -fbranch-probabilities
+  F_OPTS += -flto
+endif
 else
   F_OPTS  = -fpermissive -fno-exceptions
 endif
@@ -50,6 +59,9 @@ endif
 
 ifeq ($(DEBUG), 0)
   LIBS    = $(PKGS_LIBS)
+ifeq ($(PROFILE), YES)
+  LIBS += -lgcov
+endif
   LDFLAGS = $(CFLAGS) $(LIBS) -s
 else
   LIBS    = $(SDL_LIBS) -lm
